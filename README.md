@@ -1,4 +1,4 @@
-# go-polymarket-real-time-data-client
+# Go Polymarket real-time data client
 
 A Go client for receiving real-time data messages from Polymarket's WebSocket API. This client provides a simple and efficient way to subscribe to live market data, including trades, orders, comments, and RFQ (Request for Quote) activities.
 
@@ -141,7 +141,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Disclaimer
 
-This is an unofficial client library and is not affiliated with Polymarket. Use at your own risk.
+This is an unofficial client library and is not affiliated with Polymarket. Use at your own risk. Additionally, AI was used to generate *most* tests.
 
 ## TODOs
 
