@@ -1,6 +1,7 @@
 package jsonutils
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -164,4 +165,161 @@ func BenchmarkIsJsonFormat(b *testing.B) {
 			IsJsonFormat(input)
 		}
 	}
+}
+
+// Benchmark comparing IsJsonFormat vs string.Contains("payload")
+func BenchmarkIsJsonFormatVsPayloadCheck(b *testing.B) {
+	testCases := []struct {
+		name    string
+		message string
+	}{
+		{
+			name:    "valid_json_with_payload",
+			message: `{"payload": {"data": "value"}, "timestamp": 1234567890}`,
+		},
+		{
+			name:    "valid_json_without_payload",
+			message: `{"data": "value", "timestamp": 1234567890}`,
+		},
+		{
+			name:    "valid_json_array_with_payload",
+			message: `[{"payload": "data"}, {"other": "value"}]`,
+		},
+		{
+			name:    "valid_json_array_without_payload",
+			message: `[{"data": "value"}, {"other": "value"}]`,
+		},
+		{
+			name:    "invalid_json_with_payload_text",
+			message: `payload: some data here`,
+		},
+		{
+			name:    "invalid_json_without_payload",
+			message: `some random text without payload`,
+		},
+		{
+			name:    "empty_string",
+			message: "",
+		},
+		{
+			name:    "whitespace_only",
+			message: "   ",
+		},
+		{
+			name:    "large_valid_json_with_payload",
+			message: `{"payload": {"data": "value", "nested": {"deep": {"level": 5, "items": [1, 2, 3, 4, 5]}}}, "metadata": {"timestamp": 1234567890, "version": "1.0.0", "source": "polymarket"}}`,
+		},
+		{
+			name:    "large_valid_json_without_payload",
+			message: `{"data": {"value": "test", "nested": {"deep": {"level": 5, "items": [1, 2, 3, 4, 5]}}}, "metadata": {"timestamp": 1234567890, "version": "1.0.0", "source": "polymarket"}}`,
+		},
+	}
+
+	b.Run("IsJsonFormat", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			for _, tc := range testCases {
+				IsJsonFormat(tc.message)
+			}
+		}
+	})
+
+	b.Run("StringContainsPayload", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			for _, tc := range testCases {
+				_ = strings.Contains(tc.message, "payload")
+			}
+		}
+	})
+}
+
+// Benchmark for specific use case: checking if message should be processed
+func BenchmarkMessageProcessingCheck(b *testing.B) {
+	testCases := []struct {
+		name    string
+		message string
+	}{
+		{
+			name:    "polymarket_json_with_payload",
+			message: `{"payload": {"market_id": "123", "price": 0.65}, "timestamp": 1234567890}`,
+		},
+		{
+			name:    "polymarket_json_without_payload",
+			message: `{"market_id": "123", "price": 0.65, "timestamp": 1234567890}`,
+		},
+		{
+			name:    "non_json_with_payload_text",
+			message: `payload: market update for id 123`,
+		},
+		{
+			name:    "non_json_without_payload",
+			message: `market update for id 123`,
+		},
+		{
+			name:    "empty_message",
+			message: "",
+		},
+	}
+
+	b.Run("IsJsonFormat", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			for _, tc := range testCases {
+				if IsJsonFormat(tc.message) {
+					// Simulate processing
+					_ = len(tc.message)
+				}
+			}
+		}
+	})
+
+	b.Run("StringContainsPayload", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			for _, tc := range testCases {
+				if strings.Contains(tc.message, "payload") {
+					// Simulate processing
+					_ = len(tc.message)
+				}
+			}
+		}
+	})
+}
+
+// Benchmark for edge cases and performance characteristics
+func BenchmarkEdgeCases(b *testing.B) {
+	// Very long strings to test performance with large inputs
+	longJsonWithPayload := `{"payload": {"data": "` + strings.Repeat("very long string ", 1000) + `"}, "timestamp": 1234567890}`
+	longJsonWithoutPayload := `{"data": "` + strings.Repeat("very long string ", 1000) + `", "timestamp": 1234567890}`
+	longTextWithPayload := "payload: " + strings.Repeat("very long string ", 1000)
+	longTextWithoutPayload := strings.Repeat("very long string ", 1000)
+
+	testCases := []struct {
+		name    string
+		message string
+	}{
+		{"long_json_with_payload", longJsonWithPayload},
+		{"long_json_without_payload", longJsonWithoutPayload},
+		{"long_text_with_payload", longTextWithPayload},
+		{"long_text_without_payload", longTextWithoutPayload},
+	}
+
+	b.Run("IsJsonFormat_LongStrings", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			for _, tc := range testCases {
+				IsJsonFormat(tc.message)
+			}
+		}
+	})
+
+	b.Run("StringContainsPayload_LongStrings", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			for _, tc := range testCases {
+				strings.Contains(tc.message, "payload")
+			}
+		}
+	})
 }
