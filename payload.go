@@ -18,7 +18,7 @@ type Trade struct {
 	ProxyWallet     string  `json:"proxyWallet"`     // Address of the user proxy wallet
 	Pseudonym       string  `json:"pseudonym"`       // Pseudonym of the user
 	Side            string  `json:"side"`            // Side of the trade (BUY/SELL)
-	Size            int     `json:"size"`            // Size of the trade
+	Size            float32 `json:"size"`            // Size of the trade
 	Slug            string  `json:"slug"`            // Slug of the market
 	Timestamp       int64   `json:"timestamp"`       // Timestamp of the trade
 	Title           string  `json:"title"`           // Title of the event
